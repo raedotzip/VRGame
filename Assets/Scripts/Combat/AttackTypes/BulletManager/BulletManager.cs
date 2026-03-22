@@ -50,7 +50,17 @@ public class BulletManager : MonoBehaviour
                 continue;
             }
 
-            bullets[i] = b; // struct write-back
+            bullets[i] = b;
+        }
+
+        // Safe removal pass — handles bullets marked by parry
+        for (int i = bullets.Count - 1; i >= 0; i--)
+        {
+            if (bullets[i].pendingDestroy)
+            {
+                DespawnBulletVisual(bullets[i]);
+                bullets.RemoveAt(i);
+            }
         }
 
         RebuildGrid();
@@ -61,27 +71,30 @@ public class BulletManager : MonoBehaviour
     // ===============================
     public void SpawnBullet(Bullet b)
     {
-        if (b.visual == null)
+        if (b.visualPrefab == null)
         {
-            Debug.LogWarning("Bullet visual is null. Cannot spawn.");
+            Debug.LogWarning("Bullet visualPrefab is null. Cannot spawn.");
             return;
         }
 
-        // Spawn pooled visual
-        b.visual = BulletVisualPool.Instance.Spawn(b.visual, b.position, b.direction);
+        // Spawn pooled visual from the prefab
+        b.visual = BulletVisualPool.Instance.Spawn(b.visualPrefab, b.position, b.direction);
 
         // Initialize timing
         b.spawnTime = Time.time;
         b.lifeTime = 0f;
+        b.pendingDestroy = false;
 
         bullets.Add(b);
     }
 
     private void DespawnBulletVisual(Bullet b)
     {
-        if (b.visual != null)
+        if (b.visual != null && b.visualPrefab != null)
         {
-            BulletVisualPool.Instance.Despawn(b.visual, b.visual); // reuse the visual as prefab
+            // Pass the instance and the original prefab so the pool
+            // returns it to the correct queue
+            BulletVisualPool.Instance.Despawn(b.visual, b.visualPrefab);
         }
     }
 
@@ -150,7 +163,7 @@ public class BulletManager : MonoBehaviour
                         int i = bulletIndices[k];
                         Bullet b = bullets[i];
 
-                        if (!b.canBeParried)
+                        if (!b.canBeParried || b.pendingDestroy)
                             continue;
 
                         Vector3 toBullet = b.position - swordCenter;
@@ -174,14 +187,14 @@ public class BulletManager : MonoBehaviour
                         {
                             if (b.destroyOnParry)
                             {
-                                DespawnBulletVisual(b);
-                                bullets.RemoveAt(i);
+                                // Flag for safe removal at end of Update
+                                b.pendingDestroy = true;
+                                bullets[i] = b;
                                 continue;
                             }
 
                             b.direction = swordVelNorm;
                             b.speed *= speedMultiplier;
-
                             bullets[i] = b;
 
                             if (b.visual != null)

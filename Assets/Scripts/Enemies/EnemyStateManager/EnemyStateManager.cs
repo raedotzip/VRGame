@@ -1,16 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class EnemyStateManager : MonoBehaviour
 {
-    EnemyBaseState currentState;
+    protected EnemyBaseState currentState;
     public Animator animator;
+    public Transform player;
+    public BossObstacleData obstacleData;
 
     public virtual void Start()
     {
         animator = GetComponent<Animator>();
-        currentState = currentState;
+
+        if (player == null)
+            player = GameObject.FindWithTag("Player").transform;
+
+        currentState = this.currentState;
         currentState.EnterState(this);
     }
 
@@ -21,12 +25,32 @@ public abstract class EnemyStateManager : MonoBehaviour
 
     protected virtual void OnCollisionEnter(Collision collision)
     {
-        //check if collision is sword
         BossHurt();
     }
+
     public virtual void BossHurt()
     {
         float damage = currentState.OnBossHurt(this);
-        //boss.health -= damage;
+    }
+
+    public void FireBullet(Vector3 direction, AttackData data)
+    {
+        Bullet b = new Bullet
+        {
+            position        = transform.position,
+            direction       = direction.normalized,
+            speed           = data.bulletSpeed,
+            damage          = data.damage,
+            maxLifetime     = data.lifetime,
+            collisionRadius = data.collisionRadius,
+            canBeParried    = data.canBeParried,
+            destroyOnParry  = data.destroyOnParry,
+            movementType    = data.movementType,
+            visual          = data.bulletPrefab,
+            visualPrefab    = data.bulletPrefab,
+            attackData      = data,
+        };
+
+        BulletManager.Instance.SpawnBullet(b);
     }
 }

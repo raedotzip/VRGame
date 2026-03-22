@@ -23,13 +23,14 @@ public struct Bullet
 
     public bool canBeParried;
     public bool destroyOnParry;
-
+    public bool pendingDestroy;
     public BulletMovementType movementType;
 
     // ===============================
     // References
     // ===============================
 
-    public AttackData attackData;     // Source data asset
-    public GameObject visual;         // Pooled visual instance
+    public AttackData attackData;
+    public GameObject visual;
+    public GameObject visualPrefab; // Add this — the original prefab asset, never modified
 }

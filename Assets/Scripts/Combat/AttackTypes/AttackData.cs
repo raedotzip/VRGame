@@ -5,34 +5,20 @@ public class AttackData : ScriptableObject
 {
     [Header("Stats")]
     public float damage;
-    public float speed;
-    public float maxLifetime;
 
-    [Header("Visuals")]
-    public GameObject visualPrefab;    // actual attack object
-    public GameObject warningPrefab;   // telegraph visual (warning)
+    [Header("Bullet Settings")]
+    public float bulletSpeed;
+    public float lifetime;
+    public float collisionRadius;
+    public bool canBeParried;
+    public bool destroyOnParry;
+    public BulletMovementType movementType;
+    public GameObject bulletPrefab;
 
-    [Header("Timing")]
-    public float warningDuration = 0.5f;
-    public float startupDuration = 0.2f;
-    public float activeDuration = 0.5f;
-    public float recoveryDuration = 0.3f;
-
-    [Header("Behavior")]
-    public AttackBehavior behaviorPrefab; // ScriptableObject asset implementing AttackBehavior
+    [Header("Boss Timing")]
+    public float startupDuration;   // How long before the attack fires
+    public float recoveryDuration;  // How long the boss is vulnerable after
 
     [Header("Identification")]
     public string attackID;
-
-    // Runtime instance (not stored in the asset)
-    [HideInInspector] public AttackBehavior behaviorInstance;
-
-    // Call this when spawning the attack
-    public void InitializeBehavior()
-    {
-        if (behaviorPrefab != null)
-        {
-            behaviorInstance = Object.Instantiate(behaviorPrefab);
-        }
-    }
 }

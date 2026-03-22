@@ -102,4 +102,15 @@ public class BulletVisualPool : MonoBehaviour
             pool.Enqueue(obj);
         }
     }
+
+    public void PrewarmPool(GameObject prefab, int count)
+    {
+        if (!pools.TryGetValue(prefab, out var pool))
+        {
+            pool = new Queue<GameObject>();
+            pools[prefab] = pool;
+        }
+    
+        Prewarm(prefab, pool, count);
+    }
 }

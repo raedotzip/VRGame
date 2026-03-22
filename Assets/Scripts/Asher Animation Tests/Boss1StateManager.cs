@@ -1,22 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Boss1StateManager : EnemyStateManager
 {
-    EnemyBaseState currentState;
-    public Boss1AttackState AttackState = new Boss1AttackState();
-    public Boss1TiredState TiredState = new Boss1TiredState();
-    public Boss1IdleState IdleState = new Boss1IdleState();
-    public Boss1WanderState WanderState = new Boss1WanderState();
-    public Animator animator;
-    //counts the amount of times attacked (change later?)
-    public int timesAttacked;
+    private Boss1GroundSlamShockwaveAttack shockwaveState = new Boss1GroundSlamShockwaveAttack();
+    private Boss1MapSeparatorAttack mapSeperatorState = new Boss1MapSeparatorAttack();
 
     public override void Start()
     {
         animator = GetComponent<Animator>();
-        currentState = IdleState;
+
+        if (player == null)
+            player = GameObject.FindWithTag("Player").transform;
+
+        ObstacleManager.Instance.PrewarmObstaclePools(obstacleData);
+
+        currentState = mapSeperatorState;
         currentState.EnterState(this);
     }
 
@@ -27,12 +25,20 @@ public class Boss1StateManager : EnemyStateManager
 
     override protected void OnCollisionEnter(Collision collision)
     {
-        //check if collision is sword
         BossHurt();
     }
+
     public override void BossHurt()
     {
         float damage = currentState.OnBossHurt(this);
-        //boss.health -= damage;
+    }
+
+    public void PrewarmObstaclePools(BossObstacleData data)
+    {
+        if (data.wallPrefab != null)
+            BulletVisualPool.Instance.PrewarmPool(data.wallPrefab, 3);   // exactly 3 walls
+    
+        if (data.shockwavePrefab != null)
+            BulletVisualPool.Instance.PrewarmPool(data.shockwavePrefab, 5); // a few shockwaves
     }
 }

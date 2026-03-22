@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Boss1WanderState : EnemyBaseState
 {
+
     private float wanderSpeed = 1;
     //How to get this wanderSpeed parameter in the unity editor?
     public override void EnterState(EnemyStateManager state)
@@ -20,7 +21,7 @@ public class Boss1WanderState : EnemyBaseState
         /*
          * Pseudocode for switching states
         if (attackCondition)
-        {
+        {`
             state.SwitchState(state.AttackState);
         }
         */
