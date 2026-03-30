@@ -71,10 +71,16 @@ public class Boss1StateManager : EnemyStateManager
     // ===============================
     [HideInInspector] public int   attackCounter = 0;
     [HideInInspector] public float health        = 100f;
+    [HideInInspector] public float maxHealth     = 100f;
+    public HealthBarUI bossHealthBar;
 
     public override void Start()
     {
+        health = maxHealth;
         animator = GetComponent<Animator>();
+
+        if (bossHealthBar != null)
+            bossHealthBar.UpdateHealthPercentage(health, maxHealth);
 
         if (player == null)
             player = GameObject.FindWithTag("Player").transform;
@@ -97,7 +103,7 @@ public class Boss1StateManager : EnemyStateManager
     public override void BossHurt()
     {
         float damage = currentState.OnBossHurt(this);
-        health -= damage;
+        health = Mathf.Max(0f, health - damage);
     }
 
     // ===============================
