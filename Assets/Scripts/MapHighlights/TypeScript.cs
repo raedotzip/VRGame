@@ -3,84 +3,116 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class typewriterUI : MonoBehaviour
+public class TypeScript : MonoBehaviour
 {
-	Text _text;
-	TMP_Text _tmpProText;
-	string writer;
+    private TMP_Text tmpText;   // we’ll focus on TMP since you're using it
+    private Text uiText;        // fallback if ever needed
 
-	[SerializeField] float delayBeforeStart = 0f;
-	[SerializeField] float timeBtwChars = 0.1f;
-	[SerializeField] string leadingChar = "";
-	[SerializeField] bool leadingCharBeforeDelay = false;
+    private Coroutine typingCoroutine;
+    private string currentText = "";
 
-	// Use this for initialization
-	void Start()
-	{
-		_text = GetComponent<Text>()!;
-		_tmpProText = GetComponent<TMP_Text>()!;
+    [Header("Typewriter Settings")]
+    [SerializeField] private float delayBeforeStart = 0f;
+    [SerializeField] private float timeBtwChars = 0.05f;
+    [SerializeField] private float deleteSpeedMultiplier = 0.5f;
 
-		if (_text != null)
-		{
-			writer = _text.text;
-			_text.text = "";
+    [Header("Cursor (Optional)")]
+    [SerializeField] private string cursor = "";
+    [SerializeField] private bool showCursorBeforeDelay = false;
 
-			StartCoroutine("TypeWriterText");
-		}
+    void Awake()
+    {
+        tmpText = GetComponent<TMP_Text>();
+        uiText = GetComponent<Text>();
 
-		if (_tmpProText != null)
-		{
-			writer = _tmpProText.text;
-			_tmpProText.text = "";
+        
+        SetDisplayText("");
+    }
 
-			StartCoroutine("TypeWriterTMP");
-		}
-	}
+    
+    public void SetText(string newText)
+    {
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
 
-	IEnumerator TypeWriterText()
-	{
-		_text.text = leadingCharBeforeDelay ? leadingChar : "";
+        currentText = newText;
 
-		yield return new WaitForSeconds(delayBeforeStart);
+        SetDisplayText("");
 
-		foreach (char c in writer)
-		{
-			if (_text.text.Length > 0)
-			{
-				_text.text = _text.text.Substring(0, _text.text.Length - leadingChar.Length);
-			}
-			_text.text += c;
-			_text.text += leadingChar;
-			yield return new WaitForSeconds(timeBtwChars);
-		}
+        typingCoroutine = StartCoroutine(TypeRoutine());
+    }
 
-		if (leadingChar != "")
-		{
-			_text.text = _text.text.Substring(0, _text.text.Length - leadingChar.Length);
-		}
-	}
+   
+    public void ReplaceText(string newText)
+    {
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
 
-	IEnumerator TypeWriterTMP()
-	{
-		_tmpProText.text = leadingCharBeforeDelay ? leadingChar : "";
+        typingCoroutine = StartCoroutine(DeleteAndTypeRoutine(newText));
+    }
 
-		yield return new WaitForSeconds(delayBeforeStart);
+    // -----------------------------
+    // TYPE ROUTINE
+    // -----------------------------
+    private IEnumerator TypeRoutine()
+    {
+        if (showCursorBeforeDelay && cursor != "")
+            SetDisplayText(cursor);
 
-		foreach (char c in writer)
-		{
-			if (_tmpProText.text.Length > 0)
-			{
-				_tmpProText.text = _tmpProText.text.Substring(0, _tmpProText.text.Length - leadingChar.Length);
-			}
-			_tmpProText.text += c;
-			_tmpProText.text += leadingChar;
-			yield return new WaitForSeconds(timeBtwChars);
-		}
+        yield return new WaitForSeconds(delayBeforeStart);
 
-		if (leadingChar != "")
-		{
-			_tmpProText.text = _tmpProText.text.Substring(0, _tmpProText.text.Length - leadingChar.Length);
-		}
-	}
+        string displayed = "";
+
+        foreach (char c in currentText)
+        {
+            displayed += c;
+
+            if (!string.IsNullOrEmpty(cursor))
+                SetDisplayText(displayed + cursor);
+            else
+                SetDisplayText(displayed);
+
+            yield return new WaitForSeconds(timeBtwChars);
+        }
+
+        SetDisplayText(displayed);
+    }
+
+    // -----------------------------
+    // DELETE + TYPE ROUTINE
+    // -----------------------------
+    private IEnumerator DeleteAndTypeRoutine(string newText)
+    {
+        string current = GetCurrentDisplayedText();
+
+        
+        while (current.Length > 0)
+        {
+            current = current.Substring(0, current.Length - 1);
+            SetDisplayText(current);
+            yield return new WaitForSeconds(timeBtwChars * deleteSpeedMultiplier);
+        }
+
+        yield return new WaitForSeconds(0.2f);
+
+        
+        currentText = newText;
+        yield return StartCoroutine(TypeRoutine());
+    }
+
+    // -----------------------------
+    // HELPERS
+    // -----------------------------
+    private void SetDisplayText(string value)
+    {
+        if (tmpText != null) tmpText.text = value;
+        if (uiText != null) uiText.text = value;
+    }
+
+    private string GetCurrentDisplayedText()
+    {
+        if (tmpText != null) return tmpText.text;
+        if (uiText != null) return uiText.text;
+        return "";
+    }
 }
-
