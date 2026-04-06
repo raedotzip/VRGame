@@ -4,6 +4,9 @@ using UnityEngine;
 public class BulletManager : MonoBehaviour
 {
     public static BulletManager Instance;
+    private Transform player;
+    private PlayerHealth playerHealth;
+    [SerializeField] private float playerHitRadius = 0.5f;
 
     // ===============================
     // BULLET STORAGE
@@ -19,6 +22,17 @@ public class BulletManager : MonoBehaviour
     // ===============================
     // UNITY
     // ===============================
+
+    void Start()
+    {
+        var p = GameObject.FindWithTag("Player");
+        if (p != null)
+        {
+            player = p.transform;
+            playerHealth = p.GetComponent<PlayerHealth>();
+        }
+    }
+
     void Awake()
     {
         Instance = this;
@@ -51,6 +65,18 @@ public class BulletManager : MonoBehaviour
             }
 
             bullets[i] = b;
+
+            if (player != null && !b.pendingDestroy)
+            {
+                float dist = Vector3.Distance(b.position, player.position);
+                if (dist <= b.collisionRadius + playerHitRadius)
+                {
+                    playerHealth?.TakeDamage(b.damage); // add damage field to Bullet struct
+                    b.pendingDestroy = true;
+                    bullets[i] = b;
+                    continue;
+                }
+            }
         }
 
         // Safe removal pass — handles bullets marked by parry
