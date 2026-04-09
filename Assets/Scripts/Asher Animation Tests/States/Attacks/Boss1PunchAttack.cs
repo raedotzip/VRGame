@@ -119,7 +119,11 @@ public class Boss1PunchAttack : EnemyBaseState
 
         // Move toward target
         float step = lungeSpeed * Time.deltaTime;
-        state.transform.position += toTarget.normalized * Mathf.Min(step, distToTarget);
+        Vector3 move = toTarget.normalized * Mathf.Min(step, distToTarget);
+        if (state.rb != null)
+            state.rb.MovePosition(state.transform.position + move);
+        else
+            state.transform.position += move;
 
         lungeTimer += Time.deltaTime;
 

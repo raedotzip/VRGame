@@ -9,6 +9,13 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 2f;
     public Transform head; // assign Main Camera (VR headset)
 
+    private CharacterController cc;
+
+    void Awake()
+    {
+        cc = GetComponent<CharacterController>();
+    }
+
     void Update()
     {
         Vector2 input = moveAction.GetAxis(inputSource);
@@ -26,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
             right.Normalize();
 
             Vector3 direction = forward * input.y + right * input.x;
-            transform.position += direction * moveSpeed * Time.deltaTime;
+            cc.Move(direction * moveSpeed * Time.deltaTime);
         }
     }
 }

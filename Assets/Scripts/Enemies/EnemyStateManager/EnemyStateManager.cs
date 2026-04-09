@@ -4,6 +4,7 @@ public abstract class EnemyStateManager : MonoBehaviour
 {
     protected EnemyBaseState currentState;
     public Animator animator;
+    public Rigidbody rb;
     public Transform player;
     public BossObstacleData obstacleData;
     public BossBulletData bulletData;
@@ -11,6 +12,7 @@ public abstract class EnemyStateManager : MonoBehaviour
     public virtual void Start()
     {
         animator = GetComponent<Animator>();
+        rb       = GetComponent<Rigidbody>();
 
         if (player == null)
             player = GameObject.FindWithTag("Player").transform;

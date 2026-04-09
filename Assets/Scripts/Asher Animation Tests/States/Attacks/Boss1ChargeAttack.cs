@@ -145,7 +145,10 @@ public class Boss1ChargeAttack : EnemyBaseState
             return;
         }
 
-        state.transform.position += chargeDir * chargeSpeed * Time.deltaTime;
+        if (state.rb != null)
+            state.rb.MovePosition(state.transform.position + chargeDir * chargeSpeed * Time.deltaTime);
+        else
+            state.transform.position += chargeDir * chargeSpeed * Time.deltaTime;
 
         // Fire trail bullets while charging
         if (trailTimer >= trailFireRate)
