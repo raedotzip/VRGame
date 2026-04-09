@@ -40,6 +40,7 @@ public class Boss1SpinAttack : EnemyBaseState
         currentSpinSpeed = spinSpeed;
         currentAngle     = state.transform.eulerAngles.y;
 
+        ((Boss1StateManager)state).smoothLookAtEnabled = false;
         // state.animator.SetTrigger("Spin");
     }
 
@@ -67,7 +68,10 @@ public class Boss1SpinAttack : EnemyBaseState
         }
 
         if (spinTimer >= spinDuration)
+        {
             attackDone = true;
+            ((Boss1StateManager)state).smoothLookAtEnabled = true;
+        }
     }
 
     public override float OnBossHurt(EnemyStateManager state) => 0;

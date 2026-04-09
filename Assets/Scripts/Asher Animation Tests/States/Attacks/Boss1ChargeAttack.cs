@@ -62,6 +62,7 @@ public class Boss1ChargeAttack : EnemyBaseState
         waveTimer   = 0f;
         trailTimer  = 0f;
 
+        ((Boss1StateManager)state).smoothLookAtEnabled = false;
         state.animator.SetTrigger("Charge");
     }
 
@@ -91,6 +92,7 @@ public class Boss1ChargeAttack : EnemyBaseState
                 {
                     attackDone = true;
                     Boss1StateManager boss = (Boss1StateManager)state;
+                    boss.smoothLookAtEnabled = true;
                     boss.TransitionToNextState();
                 }
             }

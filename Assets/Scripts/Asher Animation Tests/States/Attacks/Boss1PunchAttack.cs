@@ -54,6 +54,8 @@ public class Boss1PunchAttack : EnemyBaseState
         attackDone    = false;
         punchActive   = false;
 
+        ((Boss1StateManager)state).smoothLookAtEnabled = false;
+
         // Face the player immediately
         FacePlayer(state);
 
@@ -89,6 +91,7 @@ public class Boss1PunchAttack : EnemyBaseState
             {
                 attackDone = true;
                 Boss1StateManager boss = (Boss1StateManager)state;
+                boss.smoothLookAtEnabled = true;
                 boss.TransitionToNextState();
             }
         }

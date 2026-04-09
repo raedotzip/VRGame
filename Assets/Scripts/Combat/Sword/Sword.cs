@@ -134,7 +134,7 @@ public class Sword : MonoBehaviour
                 // =================================================
                 // Damage Boss if hit
                 // =================================================
-                Boss1StateManager boss = hit.collider.GetComponent<Boss1StateManager>();
+                Boss1StateManager boss = hit.collider.GetComponentInParent<Boss1StateManager>();
                 if (boss != null)
                 {
                     boss.TakeDamage(damageAmount);

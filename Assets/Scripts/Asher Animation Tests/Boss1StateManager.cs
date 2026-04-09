@@ -14,6 +14,9 @@ public class Boss1StateManager : EnemyStateManager
     public Boss1IdleState                      idleState               = new Boss1IdleState();
     public Boss1JumpLeftMovement               jumpLeftState           = new Boss1JumpLeftMovement();
     public Boss1JumpRightMovement              jumpRightState          = new Boss1JumpRightMovement();
+    public Boss1SpiralBurstAttack              spiralBurstAttack       = new Boss1SpiralBurstAttack();
+    public Boss1TargetedBurstAttack            targetedBurstAttack     = new Boss1TargetedBurstAttack();
+    public Boss1RingGapAttack                  ringGapAttack           = new Boss1RingGapAttack();
 
     private Boss1GroundSlamShockwaveAttack     shockwaveState          = new Boss1GroundSlamShockwaveAttack();
     private Boss1MapSeparatorAttack            mapSeparatorState       = new Boss1MapSeparatorAttack();
@@ -40,24 +43,32 @@ public class Boss1StateManager : EnemyStateManager
     // ATTACK WEIGHTS
     // ===============================
     [Header("Close Range Attack Weights")]
-    [Range(0, 10)] public int closeWeight_Punch      = 3;
-    [Range(0, 10)] public int closeWeight_JumpSlam   = 2;
-    [Range(0, 10)] public int closeWeight_Spin       = 2;
-    [Range(0, 10)] public int closeWeight_BulletSlam = 1;
-    [Range(0, 10)] public int closeWeight_Charge     = 2;
+    [Range(0, 10)] public int closeWeight_Punch          = 3;
+    [Range(0, 10)] public int closeWeight_JumpSlam       = 2;
+    [Range(0, 10)] public int closeWeight_Spin           = 2;
+    [Range(0, 10)] public int closeWeight_BulletSlam     = 1;
+    [Range(0, 10)] public int closeWeight_Charge         = 2;
+    [Range(0, 10)] public int closeWeight_TargetedBurst  = 2;
+    [Range(0, 10)] public int closeWeight_RingGap        = 1;
 
     [Header("Mid Range Attack Weights")]
-    [Range(0, 10)] public int midWeight_BulletSlam   = 3;
-    [Range(0, 10)] public int midWeight_Charge       = 3;
-    [Range(0, 10)] public int midWeight_Spin         = 2;
-    [Range(0, 10)] public int midWeight_Shockwave    = 1;
-    [Range(0, 10)] public int midWeight_MapSeparator = 1;
+    [Range(0, 10)] public int midWeight_BulletSlam       = 3;
+    [Range(0, 10)] public int midWeight_Charge           = 3;
+    [Range(0, 10)] public int midWeight_Spin             = 2;
+    [Range(0, 10)] public int midWeight_Shockwave        = 1;
+    [Range(0, 10)] public int midWeight_MapSeparator     = 1;
+    [Range(0, 10)] public int midWeight_SpiralBurst      = 2;
+    [Range(0, 10)] public int midWeight_TargetedBurst    = 2;
+    [Range(0, 10)] public int midWeight_RingGap          = 2;
 
     [Header("Far Range Attack Weights")]
-    [Range(0, 10)] public int farWeight_Shockwave    = 3;
-    [Range(0, 10)] public int farWeight_MapSeparator = 3;
-    [Range(0, 10)] public int farWeight_BulletSlam   = 2;
-    [Range(0, 10)] public int farWeight_Charge       = 2;
+    [Range(0, 10)] public int farWeight_Shockwave        = 3;
+    [Range(0, 10)] public int farWeight_MapSeparator     = 3;
+    [Range(0, 10)] public int farWeight_BulletSlam       = 2;
+    [Range(0, 10)] public int farWeight_Charge           = 2;
+    [Range(0, 10)] public int farWeight_SpiralBurst      = 2;
+    [Range(0, 10)] public int farWeight_TargetedBurst    = 3;
+    [Range(0, 10)] public int farWeight_RingGap          = 2;
 
     // ===============================
     // TIRED SETTINGS
@@ -65,6 +76,15 @@ public class Boss1StateManager : EnemyStateManager
     [Header("Tired Settings")]
     public int   attacksBeforeTired = 4;
     public float tiredDuration      = 3f;
+
+    // ===============================
+    // LOOK-AT SETTINGS
+    // ===============================
+    [Header("Look At Player")]
+    public float lookAtSpeed = 5f;  // Degrees/sec as a Slerp factor — higher = snappier
+
+    // Set to false by states that control their own rotation (Spin, Charge, Punch)
+    [HideInInspector] public bool smoothLookAtEnabled = true;
 
     // ===============================
     // RUNTIME
@@ -95,6 +115,17 @@ public class Boss1StateManager : EnemyStateManager
 
     public override void Update()
     {
+        if (smoothLookAtEnabled && player != null)
+        {
+            Vector3 toPlayer = player.position - transform.position;
+            toPlayer.y = 0f;
+            if (toPlayer.sqrMagnitude > 0.001f)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(toPlayer);
+                transform.rotation  = Quaternion.Slerp(transform.rotation, targetRot, lookAtSpeed * Time.deltaTime);
+            }
+        }
+
         currentState.UpdateState(this);
     }
 
@@ -205,6 +236,8 @@ public class Boss1StateManager : EnemyStateManager
                 (spinAttack,              closeWeight_Spin),
                 (repeatedBulletSlamState, closeWeight_BulletSlam),
                 (chargeAttack,            closeWeight_Charge),
+                (targetedBurstAttack,     closeWeight_TargetedBurst),
+                (ringGapAttack,           closeWeight_RingGap),
             });
 
         if (dist >= farRange)
@@ -214,6 +247,9 @@ public class Boss1StateManager : EnemyStateManager
                 (mapSeparatorState,       farWeight_MapSeparator),
                 (repeatedBulletSlamState, farWeight_BulletSlam),
                 (chargeAttack,            farWeight_Charge),
+                (spiralBurstAttack,       farWeight_SpiralBurst),
+                (targetedBurstAttack,     farWeight_TargetedBurst),
+                (ringGapAttack,           farWeight_RingGap),
             });
 
         return PickWeighted(new (EnemyBaseState, int)[]
@@ -223,6 +259,9 @@ public class Boss1StateManager : EnemyStateManager
             (spinAttack,              midWeight_Spin),
             (shockwaveState,          midWeight_Shockwave),
             (mapSeparatorState,       midWeight_MapSeparator),
+            (spiralBurstAttack,       midWeight_SpiralBurst),
+            (targetedBurstAttack,     midWeight_TargetedBurst),
+            (ringGapAttack,           midWeight_RingGap),
         });
     }
 
