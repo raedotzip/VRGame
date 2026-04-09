@@ -56,14 +56,14 @@ public class Boss1StateManager : EnemyStateManager
     [Range(0, 10)] public int midWeight_Charge           = 3;
     [Range(0, 10)] public int midWeight_Spin             = 2;
     [Range(0, 10)] public int midWeight_Shockwave        = 1;
-    [Range(0, 10)] public int midWeight_MapSeparator     = 1;
+    [Range(0, 10)] public int midWeight_MapSeparator     = 0;
     [Range(0, 10)] public int midWeight_SpiralBurst      = 2;
     [Range(0, 10)] public int midWeight_TargetedBurst    = 2;
     [Range(0, 10)] public int midWeight_RingGap          = 2;
 
     [Header("Far Range Attack Weights")]
     [Range(0, 10)] public int farWeight_Shockwave        = 3;
-    [Range(0, 10)] public int farWeight_MapSeparator     = 3;
+    [Range(0, 10)] public int farWeight_MapSeparator     = 0;
     [Range(0, 10)] public int farWeight_BulletSlam       = 2;
     [Range(0, 10)] public int farWeight_Charge           = 2;
     [Range(0, 10)] public int farWeight_SpiralBurst      = 2;

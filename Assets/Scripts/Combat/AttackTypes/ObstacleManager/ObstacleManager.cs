@@ -7,10 +7,27 @@ public class ObstacleManager : MonoBehaviour
 
     private readonly List<Obstacle> obstacles = new List<Obstacle>();
 
+    // Player damage for standing in active obstacles
+    [SerializeField] private float wallDamagePerSecond = 10f;
+    [SerializeField] private float playerCollisionRadius = 0.4f;
+
+    private Transform playerTransform;
+    private PlayerHealth playerHealth;
+
     void Awake()
     {
         Instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    void Start()
+    {
+        var p = GameObject.FindWithTag("Player");
+        if (p != null)
+        {
+            playerTransform = p.transform;
+            playerHealth    = p.GetComponent<PlayerHealth>();
+        }
     }
 
     void Update()
@@ -54,22 +71,22 @@ public class ObstacleManager : MonoBehaviour
             {
                 float activeElapsed = o.lifeTime - o.warningDuration;
                 float t = Mathf.Clamp01(activeElapsed / o.activeDuration);
-            
+
                 float outerRadius = Mathf.Lerp(o.initialScale.x / 2f, o.finalScale.x / 2f, t);
                 float ringWidth   = 4f;
-            
+
                 o.cylinderRadius = outerRadius;
                 o.innerRadius    = Mathf.Max(0f, outerRadius - ringWidth);
-            
+
                 if (o.visual != null)
                 {
                     o.visual.transform.localScale = new Vector3(outerRadius, 1f, outerRadius);
-            
+
                     // Drive the wave time so peaks rotate around the ring
                     ShockwaveVisual sv = o.visual.GetComponent<ShockwaveVisual>();
                     if (sv != null)
                         sv.waveTime = activeElapsed;
-            
+
                     // Pulse line width
                     LineRenderer lr = o.visual.GetComponent<LineRenderer>();
                     if (lr != null)
@@ -81,14 +98,23 @@ public class ObstacleManager : MonoBehaviour
                 }
             }
 
-            // ---- Warning pulse ----
-            if (o.phase == ObstaclePhase.Warning)
+            // ---- Warning: pulse wall color/opacity, keep correct box shape ----
+            if (o.phase == ObstaclePhase.Warning && o.visual != null && o.warningDuration > 0f)
             {
                 float t = timeSinceSpawn / o.warningDuration;
-                float pulse = 1f + Mathf.Sin(t * Mathf.PI * 6f) * 0.1f * (1f - t);
+                // Pulse opacity 0.2→0.8 using a sine so it flickers urgently
+                float alpha = 0.2f + Mathf.Abs(Mathf.Sin(t * Mathf.PI * 6f)) * 0.6f;
 
-                if (o.visual != null)
-                    o.visual.transform.localScale = Vector3.one * pulse;
+                WallObstacleVisual wov = o.visual.GetComponent<WallObstacleVisual>();
+                if (wov != null)
+                    wov.SetWarning(alpha);
+            }
+
+            // ---- Active: damage player if inside ----
+            if (o.phase == ObstaclePhase.Active && playerTransform != null)
+            {
+                if (OverlapsShape(o, playerTransform.position, playerCollisionRadius))
+                    playerHealth?.TakeDamage(wallDamagePerSecond * dt);
             }
 
             // ---- Sine bounce and visual sync ----
@@ -126,9 +152,19 @@ public class ObstacleManager : MonoBehaviour
         o.spawnTime       = Time.time;
         o.spawnTimeGlobal = Time.time;
         o.lifeTime        = 0f;
-        o.phase           = ObstaclePhase.Warning;
         o.maxLifetime     = o.warningDuration + o.activeDuration;
         o.pendingDestroy  = false;
+
+        if (o.warningDuration <= 0f)
+        {
+            // Skip straight to active
+            o.phase = ObstaclePhase.Active;
+            OnBecomeActive(ref o);
+        }
+        else
+        {
+            o.phase = ObstaclePhase.Warning;
+        }
 
         obstacles.Add(o);
     }
@@ -206,33 +242,33 @@ public class ObstacleManager : MonoBehaviour
     // ===============================
     private void OnBecomeActive(ref Obstacle o)
     {
-        if (o.visual != null)
+        if (o.visual == null) return;
+
+        // Only scale mesh-based visuals — particle systems define their own shape/spread
+        // so scaling them stretches the VFX in a bad way. Check for a ParticleSystem first.
+        bool hasParticles = o.visual.GetComponentInChildren<ParticleSystem>() != null;
+
+        if (!hasParticles && o.shapeType == ObstacleShapeType.Box)
         {
             o.visual.transform.localScale = new Vector3(
                 o.boxHalfExtents.x * 2f,
                 o.boxHalfExtents.y * 2f,
                 o.boxHalfExtents.z * 2f
             );
-            LineRenderer lr = o.visual.GetComponent<LineRenderer>();
-            if (lr != null)
-            {
-                lr.material = new Material(lr.material);
-                lr.material.color = Color.red;
-            }
         }
+
+        WallObstacleVisual wov = o.visual.GetComponent<WallObstacleVisual>();
+        if (wov != null)
+            wov.SetActive();
     }
 
     private void OnBecomeDying(ref Obstacle o)
     {
-        if (o.visual != null)
-        {
-            LineRenderer lr = o.visual.GetComponent<LineRenderer>();
-            if (lr != null)
-            {
-                lr.material = new Material(lr.material);
-                lr.material.color = Color.grey;
-            }
-        }
+        if (o.visual == null) return;
+
+        WallObstacleVisual wov = o.visual.GetComponent<WallObstacleVisual>();
+        if (wov != null)
+            wov.SetDying();
     }
 
     private void DespawnVisual(Obstacle o)
