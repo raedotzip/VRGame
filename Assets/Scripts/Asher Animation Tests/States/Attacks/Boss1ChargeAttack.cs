@@ -10,9 +10,13 @@ public class Boss1ChargeAttack : EnemyBaseState
     // ===============================
     // CHARGE SETTINGS
     // ===============================
-    private float chargeSpeed    = 15f;
+    private float chargeSpeed    = 10f;
     private float chargeStopDist = 2f;
     private float chargeDuration = 3f;
+
+    // How many degrees per second the boss can steer mid-charge.
+    // Low value = nearly locked-in like Reinhardt. Player must dash to escape.
+    private float steerSpeed     = 30f;
 
     // ===============================
     // SHOCKWAVE SETTINGS
@@ -36,14 +40,17 @@ public class Boss1ChargeAttack : EnemyBaseState
     // ===============================
     // RUNTIME
     // ===============================
-    private float   chargeTimer  = 0f;
-    private bool    hasSlammed   = false;
-    private bool    attackDone   = false;
-    private bool    firingWaves  = false;
-    private int     wavesFired   = 0;      // Fixed: was wavesired / wavesfred
-    private float   waveTimer    = 0f;
-    private float   waveInterval => waveDuration / bulletWaves;
+    private float   chargeTimer   = 0f;
+    private bool    hasSlammed    = false;
+    private bool    attackDone    = false;
+    private bool    firingWaves   = false;
+    private int     wavesFired    = 0;
+    private float   waveTimer     = 0f;
+    private float   waveInterval  => waveDuration / bulletWaves;
     private Vector3 slamPosition;
+
+    // Direction locked at charge start — only steers slowly toward player
+    private Vector3 chargeDir;
 
     private float trailFireRate   = 0.08f; // How often trail bullets spawn during charge
     private float trailTimer      = 0f;
@@ -61,6 +68,13 @@ public class Boss1ChargeAttack : EnemyBaseState
         wavesFired  = 0;
         waveTimer   = 0f;
         trailTimer  = 0f;
+
+        // Lock charge direction toward player's current position at attack start
+        Vector3 toPlayer = state.player.position - state.transform.position;
+        toPlayer.y       = 0f;
+        chargeDir        = toPlayer.sqrMagnitude > 0.001f ? toPlayer.normalized : state.transform.forward;
+
+        state.transform.rotation = Quaternion.LookRotation(chargeDir);
 
         ((Boss1StateManager)state).smoothLookAtEnabled = false;
         state.animator.SetTrigger("Charge");
@@ -109,27 +123,35 @@ public class Boss1ChargeAttack : EnemyBaseState
         chargeTimer += Time.deltaTime;
         trailTimer  += Time.deltaTime;
 
+        // Slowly steer chargeDir toward the player — limited by steerSpeed so
+        // the player must dash sideways to escape, not just walk out of the way.
         Vector3 toPlayer = state.player.position - state.transform.position;
         toPlayer.y       = 0f;
 
-        if (toPlayer != Vector3.zero)
-            state.transform.rotation = Quaternion.LookRotation(toPlayer);
+        if (toPlayer.sqrMagnitude > 0.001f)
+        {
+            float maxTurn = steerSpeed * Time.deltaTime;
+            chargeDir = Vector3.RotateTowards(chargeDir, toPlayer.normalized, maxTurn * Mathf.Deg2Rad, 0f);
+        }
 
+        // Face the current charge direction
+        state.transform.rotation = Quaternion.LookRotation(chargeDir);
+
+        // Slam when close to player OR time runs out
         float distToPlayer = toPlayer.magnitude;
-
         if (distToPlayer <= chargeStopDist || chargeTimer >= chargeDuration)
         {
             DoSlam(state);
             return;
         }
 
-        state.transform.position += toPlayer.normalized * chargeSpeed * Time.deltaTime;
+        state.transform.position += chargeDir * chargeSpeed * Time.deltaTime;
 
         // Fire trail bullets while charging
         if (trailTimer >= trailFireRate)
         {
             trailTimer = 0f;
-            SpawnTrailBullets(state, toPlayer.normalized);
+            SpawnTrailBullets(state, chargeDir);
         }
     }
 
