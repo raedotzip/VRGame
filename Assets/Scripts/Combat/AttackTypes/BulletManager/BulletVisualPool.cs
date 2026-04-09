@@ -29,7 +29,8 @@ public class BulletVisualPool : MonoBehaviour
     public GameObject Spawn(
         GameObject prefab,
         Vector3 position,
-        Vector3 direction)
+        Vector3 direction,
+        float scale = 1f)
     {
         if (prefab == null)
         {
@@ -50,8 +51,9 @@ public class BulletVisualPool : MonoBehaviour
 
         GameObject obj = pool.Dequeue();
 
-        obj.transform.position = position;
-        obj.transform.forward = direction;
+        obj.transform.position   = position;
+        obj.transform.forward    = direction;
+        obj.transform.localScale = Vector3.one * (scale > 0f ? scale : 1f);
         obj.SetActive(true);
 
         return obj;

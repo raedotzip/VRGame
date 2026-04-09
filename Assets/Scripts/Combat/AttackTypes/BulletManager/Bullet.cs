@@ -24,8 +24,11 @@ public struct Bullet
     public bool canBeParried;
     public bool destroyOnParry;
     public bool pendingDestroy;
+    public bool isParried;       // True after the sword deflects it — can now damage the boss
     public BulletMovementType movementType;
     public Vector3 velocity;
+
+    public float scale;          // Visual + collision scale multiplier (0 = use default 1)
 
     // ===============================
     // References

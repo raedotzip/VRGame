@@ -89,8 +89,8 @@ public class Sword : MonoBehaviour
     {
         SweepBladeMelee();
 
-        if (isSwinging)
-            ParryBullets();
+        // Always check for bullet contact — sword doesn't need to be swinging to parry
+        ParryBullets();
 
         if (bladeBase != null) lastBasePos = bladeBase.position;
         if (bladeTip != null) lastTipPos = bladeTip.position;
@@ -166,7 +166,6 @@ public class Sword : MonoBehaviour
     {
         if (BulletManager.Instance == null) return;
         if (swordRenderer == null) return;
-        if (Velocity.sqrMagnitude < 0.0001f) return;
 
         bool isPerfect = Time.time - swingStartTime <= perfectWindow;
 

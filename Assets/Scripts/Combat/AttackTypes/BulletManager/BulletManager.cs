@@ -6,7 +6,10 @@ public class BulletManager : MonoBehaviour
     public static BulletManager Instance;
     private Transform player;
     private PlayerHealth playerHealth;
+    private Boss1StateManager boss;
     [SerializeField] private float playerHitRadius = 0.5f;
+    [SerializeField] private float bossHitRadius   = 1.5f;
+    [SerializeField] private float parriedBossDamage = 5f;
 
     // ===============================
     // BULLET STORAGE
@@ -28,9 +31,13 @@ public class BulletManager : MonoBehaviour
         var p = GameObject.FindWithTag("Player");
         if (p != null)
         {
-            player = p.transform;
+            player       = p.transform;
             playerHealth = p.GetComponent<PlayerHealth>();
         }
+
+        var b = GameObject.FindWithTag("Boss");
+        if (b != null)
+            boss = b.GetComponent<Boss1StateManager>();
     }
 
     void Awake()
@@ -66,15 +73,32 @@ public class BulletManager : MonoBehaviour
 
             bullets[i] = b;
 
-            if (player != null && !b.pendingDestroy)
+            if (!b.pendingDestroy)
             {
-                float dist = Vector3.Distance(b.position, player.position);
-                if (dist <= b.collisionRadius + playerHitRadius)
+                // Player collision — only for non-parried bullets
+                if (!b.isParried && player != null)
                 {
-                    playerHealth?.TakeDamage(b.damage); // add damage field to Bullet struct
-                    b.pendingDestroy = true;
-                    bullets[i] = b;
-                    continue;
+                    float dist = Vector3.Distance(b.position, player.position);
+                    if (dist <= b.collisionRadius + playerHitRadius)
+                    {
+                        playerHealth?.TakeDamage(b.damage);
+                        b.pendingDestroy = true;
+                        bullets[i] = b;
+                        continue;
+                    }
+                }
+
+                // Boss collision — only for parried bullets
+                if (b.isParried && boss != null)
+                {
+                    float dist = Vector3.Distance(b.position, boss.transform.position);
+                    if (dist <= b.collisionRadius + bossHitRadius)
+                    {
+                        boss.TakeDamage(parriedBossDamage);
+                        b.pendingDestroy = true;
+                        bullets[i] = b;
+                        continue;
+                    }
                 }
             }
         }
@@ -103,8 +127,16 @@ public class BulletManager : MonoBehaviour
             return;
         }
 
-        // Spawn pooled visual from the prefab
-        b.visual = BulletVisualPool.Instance.Spawn(b.visualPrefab, b.position, b.direction);
+        // Apply default scale if the spawner didn't set one
+        if (b.scale <= 0f) b.scale = 3f;
+
+        // Scale collision radius to match visual size — existing explicit values are preserved
+        // only if they were already scaled for a non-default bullet size.
+        // Scale the collision to match: base radius 0.3 * (scale/1) so bigger bullets are easier to hit
+        b.collisionRadius = Mathf.Max(b.collisionRadius, 0.3f * b.scale);
+
+        // Spawn pooled visual from the prefab — apply scale
+        b.visual = BulletVisualPool.Instance.Spawn(b.visualPrefab, b.position, b.direction, b.scale);
 
         // Initialize timing
         b.spawnTime = Time.time;
@@ -157,6 +189,10 @@ public class BulletManager : MonoBehaviour
     // ===============================
     // OPTIMIZED PARRY
     // ===============================
+    // Called every FixedUpdate by Sword. swordVelocity may be zero (sword held still).
+    // Any bullet touching the sword OBB is parried — no swing required.
+    // If the sword is moving, parried bullets reflect along sword velocity.
+    // If the sword is stationary, parried bullets reflect back toward the boss.
     public void TryParryBullets(
         Vector3 swordCenter,
         Transform swordTransform,
@@ -166,13 +202,10 @@ public class BulletManager : MonoBehaviour
         float parryAngle,
         float speedMultiplier)
     {
-        if (swordVelocity.sqrMagnitude < 0.0001f)
-            return;
+        bool swordMoving     = swordVelocity.sqrMagnitude > 0.01f;
+        Vector3 swordVelNorm = swordMoving ? swordVelocity.normalized : Vector3.zero;
 
-        float cosThreshold = Mathf.Cos(parryAngle * Mathf.Deg2Rad);
-        Vector3 swordVelNorm = swordVelocity.normalized;
-
-        int cellRadius = Mathf.CeilToInt(boundingSphereRadius / cellSize);
+        int cellRadius     = Mathf.CeilToInt((boundingSphereRadius + 1f) / cellSize);
         Vector3Int centerCell = GetCell(swordCenter);
 
         for (int x = -cellRadius; x <= cellRadius; x++)
@@ -186,46 +219,46 @@ public class BulletManager : MonoBehaviour
 
                     for (int k = 0; k < bulletIndices.Count; k++)
                     {
-                        int i = bulletIndices[k];
+                        int i    = bulletIndices[k];
                         Bullet b = bullets[i];
 
-                        if (!b.canBeParried || b.pendingDestroy)
+                        if (!b.canBeParried || b.pendingDestroy || b.isParried)
                             continue;
 
+                        // Broadphase sphere check
                         Vector3 toBullet = b.position - swordCenter;
-                        float combined = boundingSphereRadius + b.collisionRadius;
-
-                        // Broadphase
+                        float combined   = boundingSphereRadius + b.collisionRadius;
                         if (toBullet.sqrMagnitude > combined * combined)
                             continue;
 
                         // OBB narrowphase
                         Vector3 local = swordTransform.InverseTransformPoint(b.position);
-
                         if (Mathf.Abs(local.x) > halfExtents.x + b.collisionRadius) continue;
                         if (Mathf.Abs(local.y) > halfExtents.y + b.collisionRadius) continue;
                         if (Mathf.Abs(local.z) > halfExtents.z + b.collisionRadius) continue;
 
-                        // Direction check
-                        Vector3 incoming = -b.direction;
-
-                        if (Vector3.Dot(incoming, swordVelNorm) >= cosThreshold)
+                        // ---- Bullet is touching the sword — parry it ----
+                        if (b.destroyOnParry)
                         {
-                            if (b.destroyOnParry)
-                            {
-                                // Flag for safe removal at end of Update
-                                b.pendingDestroy = true;
-                                bullets[i] = b;
-                                continue;
-                            }
-
-                            b.direction = swordVelNorm;
-                            b.speed *= speedMultiplier;
+                            b.pendingDestroy = true;
                             bullets[i] = b;
-
-                            if (b.visual != null)
-                                b.visual.GetComponent<Renderer>().material.color = Color.cyan;
+                            continue;
                         }
+
+                        // Reflect direction:
+                        // Sword moving  → deflect along sword velocity (player-aimed)
+                        // Sword still   → reflect straight back along incoming direction
+                        if (swordMoving)
+                            b.direction = swordVelNorm;
+                        else
+                            b.direction = -b.direction; // straight back the way it came
+
+                        b.speed    *= speedMultiplier;
+                        b.isParried = true;
+                        bullets[i]  = b;
+
+                        if (b.visual != null)
+                            b.visual.GetComponent<Renderer>().material.color = Color.cyan;
                     }
                 }
     }
