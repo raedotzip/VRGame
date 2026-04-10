@@ -30,6 +30,13 @@ public class Sword : MonoBehaviour
     [Tooltip("Damage multiplier at maxSwingDistance (full swing).")]
     public float maxDamageMultiplier = 1.5f;
 
+    [Header("Life Steal")]
+    [Tooltip("Tip travel distance required before any healing occurs. Must be a wide swing.")]
+    public float healSwingThreshold = 0.35f;
+    [Tooltip("How much health is restored on a qualifying wide swing hit.")]
+    public float healAmount = 5f;
+    public PlayerHealth playerHealth;
+
     [Header("Bullet Parry")]
     public float parryAngle = 70f;
     public float speedMultiplier = 1.5f;
@@ -161,6 +168,9 @@ public class Sword : MonoBehaviour
                     float t = Mathf.InverseLerp(minSwingDistance, maxSwingDistance, swingTipDistance);
                     float multiplier = Mathf.Lerp(minDamageMultiplier, maxDamageMultiplier, t);
                     boss.TakeDamage(damageAmount * multiplier);
+
+                    if (swingTipDistance >= healSwingThreshold && playerHealth != null)
+                        playerHealth.Heal(healAmount);
                 }
 
                 // Optional: reflect rigidbody for physics-based hits
