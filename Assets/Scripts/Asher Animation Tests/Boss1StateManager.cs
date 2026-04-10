@@ -33,49 +33,52 @@ public class Boss1StateManager : EnemyStateManager
     // RETREAT SETTINGS
     // ===============================
     [Header("Retreat Settings")]
-    public float retreatRange              = 6f;
-    [Range(0f, 1f)] public float retreatChance = 0.4f;
-    [Range(0f, 1f)] public float sideJumpChance = 0.3f; // Chance to jump left/right instead of back
-    public float mapBoundsRadius           = 28f;  // Collision boundary of the map
-    public float sideJumpDistance          = 6f;   // How far left/right jump checks
+    public float retreatRange                    = 5f;   // tighter — boss commits more
+    [Range(0f, 1f)] public float retreatChance   = 0.25f; // less frequent retreating
+    [Range(0f, 1f)] public float sideJumpChance  = 0.55f; // mostly jumps sideways to reposition
+    public float mapBoundsRadius                 = 28f;
+    public float sideJumpDistance                = 6f;
 
     // ===============================
     // ATTACK WEIGHTS
     // ===============================
+    // Close: boss is in your face — big melee, fast pressure
     [Header("Close Range Attack Weights")]
-    [Range(0, 10)] public int closeWeight_Punch          = 3;
-    [Range(0, 10)] public int closeWeight_JumpSlam       = 2;
-    [Range(0, 10)] public int closeWeight_Spin           = 2;
-    [Range(0, 10)] public int closeWeight_BulletSlam     = 1;
-    [Range(0, 10)] public int closeWeight_Charge         = 2;
-    [Range(0, 10)] public int closeWeight_TargetedBurst  = 2;
-    [Range(0, 10)] public int closeWeight_RingGap        = 1;
+    [Range(0, 10)] public int closeWeight_Punch         = 4; // most common — fast and aggressive
+    [Range(0, 10)] public int closeWeight_JumpSlam      = 3; // launches into player
+    [Range(0, 10)] public int closeWeight_Spin          = 3; // sweeping close attack
+    [Range(0, 10)] public int closeWeight_BulletSlam    = 1; // rare at close range
+    [Range(0, 10)] public int closeWeight_Charge        = 3; // charges through player
+    [Range(0, 10)] public int closeWeight_TargetedBurst = 1; // occasional ranged surprise
+    [Range(0, 10)] public int closeWeight_RingGap       = 1;
 
+    // Mid: boss closes distance or uses area attacks
     [Header("Mid Range Attack Weights")]
-    [Range(0, 10)] public int midWeight_BulletSlam       = 3;
-    [Range(0, 10)] public int midWeight_Charge           = 3;
-    [Range(0, 10)] public int midWeight_Spin             = 2;
-    [Range(0, 10)] public int midWeight_Shockwave        = 1;
-    [Range(0, 10)] public int midWeight_MapSeparator     = 0;
-    [Range(0, 10)] public int midWeight_SpiralBurst      = 2;
-    [Range(0, 10)] public int midWeight_TargetedBurst    = 2;
-    [Range(0, 10)] public int midWeight_RingGap          = 2;
+    [Range(0, 10)] public int midWeight_BulletSlam      = 2;
+    [Range(0, 10)] public int midWeight_Charge          = 4; // aggressively closes in
+    [Range(0, 10)] public int midWeight_Spin            = 2;
+    [Range(0, 10)] public int midWeight_Shockwave       = 2;
+    [Range(0, 10)] public int midWeight_MapSeparator    = 0;
+    [Range(0, 10)] public int midWeight_SpiralBurst     = 3; // good mid-range pressure
+    [Range(0, 10)] public int midWeight_TargetedBurst   = 3; // tracks player well at mid
+    [Range(0, 10)] public int midWeight_RingGap         = 2;
 
+    // Far: forces player to move, boss closes in
     [Header("Far Range Attack Weights")]
-    [Range(0, 10)] public int farWeight_Shockwave        = 3;
-    [Range(0, 10)] public int farWeight_MapSeparator     = 0;
-    [Range(0, 10)] public int farWeight_BulletSlam       = 2;
-    [Range(0, 10)] public int farWeight_Charge           = 2;
-    [Range(0, 10)] public int farWeight_SpiralBurst      = 2;
-    [Range(0, 10)] public int farWeight_TargetedBurst    = 3;
-    [Range(0, 10)] public int farWeight_RingGap          = 2;
+    [Range(0, 10)] public int farWeight_Shockwave       = 2;
+    [Range(0, 10)] public int farWeight_MapSeparator    = 0;
+    [Range(0, 10)] public int farWeight_BulletSlam      = 2;
+    [Range(0, 10)] public int farWeight_Charge          = 4; // boss rushes in from far
+    [Range(0, 10)] public int farWeight_SpiralBurst     = 3;
+    [Range(0, 10)] public int farWeight_TargetedBurst   = 4; // punishes staying far away
+    [Range(0, 10)] public int farWeight_RingGap         = 2;
 
     // ===============================
     // TIRED SETTINGS
     // ===============================
     [Header("Tired Settings")]
-    public int   attacksBeforeTired = 4;
-    public float tiredDuration      = 3f;
+    public int   attacksBeforeTired = 5;  // more attacks before resting
+    public float tiredDuration      = 2f; // shorter rest window
 
     // ===============================
     // LOOK-AT SETTINGS
