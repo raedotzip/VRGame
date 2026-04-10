@@ -20,6 +20,16 @@ public class Sword : MonoBehaviour
     public float swingStopThreshold = 0.4f;
     public float perfectWindow = 0.15f;
 
+    [Header("Swing Damage Scaling")]
+    [Tooltip("Tip travel distance (meters) for minimum damage. Wrist flicks will be at or below this.")]
+    public float minSwingDistance = 0.08f;
+    [Tooltip("Tip travel distance (meters) for maximum damage. A full wide swing reaches this.")]
+    public float maxSwingDistance = 0.55f;
+    [Tooltip("Damage multiplier at minSwingDistance (flick).")]
+    public float minDamageMultiplier = 0.25f;
+    [Tooltip("Damage multiplier at maxSwingDistance (full swing).")]
+    public float maxDamageMultiplier = 1.5f;
+
     [Header("Bullet Parry")]
     public float parryAngle = 70f;
     public float speedMultiplier = 1.5f;
@@ -36,6 +46,7 @@ public class Sword : MonoBehaviour
 
     private float swingStartTime;
     private bool isSwinging;
+    private float swingTipDistance = 0f; // arc distance tip has travelled this swing
 
     private Renderer swordRenderer;
     private Vector3 halfExtents;
@@ -79,10 +90,20 @@ public class Sword : MonoBehaviour
         {
             isSwinging = true;
             swingStartTime = Time.time;
+            swingTipDistance = 0f;
         }
 
-        if (speed < swingStopThreshold)
-            isSwinging = false;
+        if (isSwinging)
+        {
+            if (bladeTip != null)
+                swingTipDistance += Vector3.Distance(bladeTip.position, lastTipPos);
+
+            if (speed < swingStopThreshold)
+            {
+                isSwinging = false;
+                swingTipDistance = 0f;
+            }
+        }
     }
 
     void FixedUpdate()
@@ -137,7 +158,9 @@ public class Sword : MonoBehaviour
                 Boss1StateManager boss = hit.collider.GetComponentInParent<Boss1StateManager>();
                 if (boss != null)
                 {
-                    boss.TakeDamage(damageAmount);
+                    float t = Mathf.InverseLerp(minSwingDistance, maxSwingDistance, swingTipDistance);
+                    float multiplier = Mathf.Lerp(minDamageMultiplier, maxDamageMultiplier, t);
+                    boss.TakeDamage(damageAmount * multiplier);
                 }
 
                 // Optional: reflect rigidbody for physics-based hits
