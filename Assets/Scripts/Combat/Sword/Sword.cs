@@ -165,8 +165,8 @@ public class Sword : MonoBehaviour
                 Boss1StateManager boss = hit.collider.GetComponentInParent<Boss1StateManager>();
                 if (boss != null)
                 {
-                    float t = Mathf.InverseLerp(minSwingDistance, maxSwingDistance, swingTipDistance);
-                    float multiplier = Mathf.Lerp(minDamageMultiplier, maxDamageMultiplier, t);
+                    float swingT = Mathf.InverseLerp(minSwingDistance, maxSwingDistance, swingTipDistance);
+                    float multiplier = Mathf.Lerp(minDamageMultiplier, maxDamageMultiplier, swingT);
                     boss.TakeDamage(damageAmount * multiplier);
 
                     if (swingTipDistance >= healSwingThreshold && playerHealth != null)
