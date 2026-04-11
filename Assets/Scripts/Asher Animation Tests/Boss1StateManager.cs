@@ -295,7 +295,19 @@ public class Boss1StateManager : EnemyStateManager
 
     public void SwitchState(EnemyBaseState newState)
     {
+        DisableAnimationBools();
         currentState = newState;
         currentState.EnterState(this);
+    }
+
+    public void DisableAnimationBools()
+    {
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.type == AnimatorControllerParameterType.Bool)
+            {
+                animator.SetBool(param.name, false);
+            }
+        }
     }
 }

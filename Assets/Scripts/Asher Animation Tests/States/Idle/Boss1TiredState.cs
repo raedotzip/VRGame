@@ -12,7 +12,7 @@ public class Boss1TiredState : EnemyBaseState
         hasBeenHit = false;
 
         // Play tired animation — boss hunches over, vulnerable
-        state.animator.SetTrigger("Tired");
+        //state.animator.SetTrigger("Tired");
 
         Debug.Log("Boss is tired — player can attack!");
     }

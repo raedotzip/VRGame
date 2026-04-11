@@ -41,7 +41,7 @@ public class Boss1SpinAttack : EnemyBaseState
         currentAngle     = state.transform.eulerAngles.y;
 
         ((Boss1StateManager)state).smoothLookAtEnabled = false;
-        // state.animator.SetTrigger("Spin");
+        state.animator.SetBool("Spin", true);
     }
 
     public override void UpdateState(EnemyStateManager state)

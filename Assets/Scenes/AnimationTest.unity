@@ -686,24 +686,24 @@ MonoBehaviour:
   sideJumpDistance: 6
   closeWeight_Punch: 3
   closeWeight_JumpSlam: 2
-  closeWeight_Spin: 2
+  closeWeight_Spin: 10
   closeWeight_BulletSlam: 1
   closeWeight_Charge: 2
   closeWeight_TargetedBurst: 2
   closeWeight_RingGap: 1
   midWeight_BulletSlam: 3
   midWeight_Charge: 3
-  midWeight_Spin: 2
+  midWeight_Spin: 10
   midWeight_Shockwave: 1
   midWeight_MapSeparator: 1
-  midWeight_SpiralBurst: 2
+  midWeight_SpiralBurst: 10
   midWeight_TargetedBurst: 2
   midWeight_RingGap: 2
   farWeight_Shockwave: 3
   farWeight_MapSeparator: 3
   farWeight_BulletSlam: 2
-  farWeight_Charge: 2
-  farWeight_SpiralBurst: 2
+  farWeight_Charge: 3
+  farWeight_SpiralBurst: 10
   farWeight_TargetedBurst: 3
   farWeight_RingGap: 2
   attacksBeforeTired: 4

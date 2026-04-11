@@ -62,7 +62,7 @@ public class Boss1RepeatedGroundSlamBulletAttack : EnemyBaseState
         slamsCompleted++;
         waitingForNext = true;
 
-        state.animator.SetTrigger("GroundSlam");
+        //state.animator.SetTrigger("GroundSlam");
 
         SpawnBulletBurst(state);
     }

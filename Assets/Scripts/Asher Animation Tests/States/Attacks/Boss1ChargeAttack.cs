@@ -77,7 +77,7 @@ public class Boss1ChargeAttack : EnemyBaseState
         state.transform.rotation = Quaternion.LookRotation(chargeDir);
 
         ((Boss1StateManager)state).smoothLookAtEnabled = false;
-        state.animator.SetTrigger("Charge");
+        state.animator.SetBool("Running", true);
     }
 
     public override void UpdateState(EnemyStateManager state)
@@ -168,6 +168,8 @@ public class Boss1ChargeAttack : EnemyBaseState
         slamPosition.y = 0f;
 
         state.animator.SetTrigger("GroundSlam");
+        Debug.Log("Ground Slammed");
+        //state.animator.SetBool("Running", false);
 
         SpawnShockwave(state);
 
