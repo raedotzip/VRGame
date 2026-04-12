@@ -9,12 +9,15 @@ public class Boss1TiredState : EnemyBaseState
     public override void EnterState(EnemyStateManager state)
     {
         timer     = 0f;
+        Boss1StateManager boss = (Boss1StateManager)state;
+        tiredDuration = boss.tiredDuration;
         hasBeenHit = false;
 
         // Play tired animation — boss hunches over, vulnerable
         //state.animator.SetTrigger("Tired");
 
         Debug.Log("Boss is tired — player can attack!");
+        state.animator.SetBool("Tired", true);
     }
 
     public override void UpdateState(EnemyStateManager state)
@@ -28,6 +31,7 @@ public class Boss1TiredState : EnemyBaseState
             boss.attackCounter = 0;
             boss.TransitionToNextState();
         }
+        Debug.Log(timer);
     }
 
     public override float OnBossHurt(EnemyStateManager state)

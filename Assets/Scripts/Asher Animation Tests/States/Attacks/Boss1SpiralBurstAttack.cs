@@ -41,6 +41,7 @@ public class Boss1SpiralBurstAttack : EnemyBaseState
 
         ((Boss1StateManager)state).smoothLookAtEnabled = false;
         state.animator.SetBool("Spin", true);
+        Debug.Log("SpiralBurstAttack");
     }
 
     public override void UpdateState(EnemyStateManager state)

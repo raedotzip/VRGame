@@ -40,6 +40,7 @@ public class Boss1JumpBackMovement : EnemyBaseState
         targetPosition.y = 0f;
         elapsedTime     = 0f;
         hasTransitioned = false;
+        state.animator.SetTrigger("Jumping");
 
         Debug.Log($"JumpBack — start: {startPosition}, target: {targetPosition}, awayDir: {awayDir}");
 

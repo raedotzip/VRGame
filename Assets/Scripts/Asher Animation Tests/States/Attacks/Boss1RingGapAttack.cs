@@ -31,6 +31,7 @@ public class Boss1RingGapAttack : EnemyBaseState
     private float ringTimer          = 0f;
     private float currentGapAngle    = 0f;  // Tracks where the gap currently is
     private bool  attackDone         = false;
+    private bool animationDone = false;
 
     public override void EnterState(EnemyStateManager state)
     {
@@ -44,6 +45,7 @@ public class Boss1RingGapAttack : EnemyBaseState
         currentGapAngle   = toPlayer.sqrMagnitude > 0.001f
             ? Mathf.Atan2(toPlayer.x, toPlayer.z) * Mathf.Rad2Deg
             : 0f;
+        state.animator.SetTrigger("GroundSlam");
     }
 
     public override void UpdateState(EnemyStateManager state)
@@ -52,12 +54,18 @@ public class Boss1RingGapAttack : EnemyBaseState
             return;
 
         ringTimer += Time.deltaTime;
-
+        if (ringTimer >= timeBetweenRings / 2 && !animationDone)
+        {
+            state.animator.SetTrigger("GroundSlam");
+            animationDone = true;
+            Debug.Log("Animation Triggered");
+        }
         if (ringTimer >= timeBetweenRings)
         {
             ringTimer = 0f;
             FireRing(state);
             ringsCompleted++;
+            animationDone = false;
 
             // Rotate gap so the player can't just stand still
             currentGapAngle += gapRotatePerRing;

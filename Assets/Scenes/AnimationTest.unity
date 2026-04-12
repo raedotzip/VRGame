@@ -680,34 +680,34 @@ MonoBehaviour:
   closeRange: 8
   farRange: 18
   retreatRange: 6
-  retreatChance: 0.4
-  sideJumpChance: 0.3
+  retreatChance: 0.37
+  sideJumpChance: 0.37
   mapBoundsRadius: 28
   sideJumpDistance: 6
   closeWeight_Punch: 3
-  closeWeight_JumpSlam: 2
-  closeWeight_Spin: 10
-  closeWeight_BulletSlam: 1
+  closeWeight_JumpSlam: 3
+  closeWeight_Spin: 2
+  closeWeight_BulletSlam: 2
   closeWeight_Charge: 2
   closeWeight_TargetedBurst: 2
   closeWeight_RingGap: 1
   midWeight_BulletSlam: 3
   midWeight_Charge: 3
-  midWeight_Spin: 10
+  midWeight_Spin: 2
   midWeight_Shockwave: 1
   midWeight_MapSeparator: 1
-  midWeight_SpiralBurst: 10
+  midWeight_SpiralBurst: 2
   midWeight_TargetedBurst: 2
-  midWeight_RingGap: 2
+  midWeight_RingGap: 10
   farWeight_Shockwave: 3
   farWeight_MapSeparator: 3
   farWeight_BulletSlam: 2
   farWeight_Charge: 3
-  farWeight_SpiralBurst: 10
+  farWeight_SpiralBurst: 3
   farWeight_TargetedBurst: 3
-  farWeight_RingGap: 2
+  farWeight_RingGap: 10
   attacksBeforeTired: 4
-  tiredDuration: 3
+  tiredDuration: 4.92
   lookAtSpeed: 5
   smoothLookAtEnabled: 1
   attackCounter: 0

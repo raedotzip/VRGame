@@ -59,10 +59,10 @@ public class Boss1TargetedBurstAttack : EnemyBaseState
 
             if (inBurstTimer >= inBurstFireRate)
             {
+                if (bulletsThisBurst == 0) state.animator.SetTrigger("Clap");
                 inBurstTimer = 0f;
                 FireBullet(state);
                 bulletsThisBurst++;
-
                 if (bulletsThisBurst >= bulletsPerBurst)
                 {
                     inBurst       = false;

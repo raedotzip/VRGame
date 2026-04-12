@@ -21,6 +21,7 @@ public class Boss1JumpSlamAttack : EnemyBaseState
 
         elapsedTime = 0f;
         hasLanded   = false;
+        state.animator.SetTrigger("JumpAttack");
     }
 
     public override void UpdateState(EnemyStateManager state)
@@ -39,7 +40,7 @@ public class Boss1JumpSlamAttack : EnemyBaseState
         {
             hasLanded = true;
             state.transform.position = targetPosition;
-            // state.animator.SetTrigger("GroundSlam");
+            state.animator.SetTrigger("GroundSlam");
             Boss1StateManager boss = (Boss1StateManager)state;
             boss.TransitionToNextState();
         }

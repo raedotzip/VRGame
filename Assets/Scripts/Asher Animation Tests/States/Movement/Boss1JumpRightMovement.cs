@@ -32,6 +32,8 @@ public class Boss1JumpRightMovement : EnemyBaseState
         lookDir.y = 0f;
         if (lookDir != Vector3.zero)
             state.transform.rotation = Quaternion.LookRotation(lookDir);
+        state.animator.SetTrigger("Jumping");
+        Debug.Log("Jumping Right");
     }
 
     public override void UpdateState(EnemyStateManager state)
